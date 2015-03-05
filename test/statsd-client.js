@@ -256,6 +256,125 @@ test('client.gauge()', function t(assert) {
     });
 });
 
+test('client.immediateCounter()', function t(assert) {
+    var server = UDPServer({ port: PORT }, function onBound() {
+        var sock = new StatsDClient({
+            host: 'localhost',
+            port: PORT
+        });
+
+        var messageSent = false;
+        server.once('message', onMessage);
+        sock.immediateCounter('hello', 10, function onCompleteSending() {
+            messageSent = true;
+        });
+
+        function onMessage(msg) {
+            var str = String(msg);
+            assert.equal(str, 'hello:10|c');
+            assert.equal(messageSent, true);
+            sock.close();
+            server.close();
+            assert.end();
+        }
+    });
+});
+
+test('client.immediateIncrement()', function t(assert) {
+    var server = UDPServer({ port: PORT }, function onBound() {
+        var sock = new StatsDClient({
+            host: 'localhost',
+            port: PORT
+        });
+
+        var messageSent = false;
+        server.once('message', onMessage);
+        sock.immediateIncrement('hello', null, function onCompleteSending() {
+            messageSent = true;
+        });
+
+        function onMessage(msg) {
+            var str = String(msg);
+            assert.equal(str, 'hello:1|c');
+            assert.equal(messageSent, true);
+            sock.close();
+            server.close();
+            assert.end();
+        }
+    });
+});
+
+test('client.immediateDecrement()', function t(assert) {
+    var server = UDPServer({ port: PORT }, function onBound() {
+        var sock = new StatsDClient({
+            host: 'localhost',
+            port: PORT
+        });
+
+        var messageSent = false;
+        server.once('message', onMessage);
+        sock.immediateDecrement('hello', null, function onCompleteSending() {
+            messageSent = true;
+        });
+
+        function onMessage(msg) {
+            var str = String(msg);
+            assert.equal(str, 'hello:-1|c');
+            assert.equal(messageSent, true);
+            sock.close();
+            server.close();
+            assert.end();
+        }
+    });
+});
+
+test('client.immediateGauge()', function t(assert) {
+    var server = UDPServer({ port: PORT }, function onBound() {
+        var sock = new StatsDClient({
+            host: 'localhost',
+            port: PORT
+        });
+
+        var messageSent = false;
+        server.once('message', onMessage);
+        sock.immediateGauge('hello', 10, function onCompleteSending() {
+            messageSent = true;
+        });
+
+        function onMessage(msg) {
+            var str = String(msg);
+            assert.equal(str, 'hello:10|g');
+            assert.equal(messageSent, true);
+
+            sock.close();
+            server.close();
+            assert.end();
+        }
+    });
+})
+
+test('client.immediateTiming() with Date', function t(assert) {
+    var server = UDPServer({ port: PORT }, function onBound() {
+        var client = new StatsDClient({
+            prefix: 'bar'
+        });
+
+        var messageSent = false;
+        client.immediateTiming('foo', new Date(), function onCompleteSending() {
+            messageSent = true;
+        });
+        server.once('message', function (msg) {
+            assert.equal(msg.toString(), 'bar.foo:0|ms');
+            assert.equal(messageSent, true);
+
+            server.close();
+            client.close();
+            assert.end();
+        });
+    });
+})
+
+
 test('can write with DNS resolver', function t(assert) {
     var server = UDPServer({ port: PORT }, function onBound() {
         var client = new StatsDClient({
