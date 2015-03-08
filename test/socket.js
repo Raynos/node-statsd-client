@@ -279,3 +279,29 @@ test('DNS resolver will send IP address', function t(assert) {
         }
     });
 });
+
+test('writing to a bad host does not blow up on multiple writes crossing the queue boundary', function t(assert) {
+    var sock = new EphemeralSocket({
+        host: 'lol.example.com',
+        port: PORT,
+        socket_timeout: 0,
+        packetQueue: { block: 1, flush: 1 }
+    });
+
+    sock.send('hello');
+    sock.send('hello');
+
+    var uncaughtExceptionCount = 0;
+    process.on('uncaughtException', onUncaughtException);
+
+    setTimeout(function () {
+        assert.equal(sock._socket, null);
+        assert.equal(uncaughtExceptionCount, 0);
+        process.removeListener('uncaughtException', onUncaughtException);
+        assert.end();
+    }, 50);
+
+    function onUncaughtException(err) {
+        uncaughtExceptionCount++;
+    }
+});
