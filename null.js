@@ -67,3 +67,54 @@ proto.close = function close() {
         this._buffer.deq();
     }
 };
+
+proto.immediateGauge = function (name, value, cb) {
+    this._write(new NullStatsdRecord(
+        'g',
+        name,
+        value
+    ));
+    process.nextTick(cb);
+};
+
+proto.immediateIncrement = function (name, delta, cb) {
+    this._write(new NullStatsdRecord(
+        'c',
+        name,
+        null,
+        delta || 1
+    ));
+    process.nextTick(cb);
+};
+
+proto.immediateDecrement = function (name, delta, cb) {
+    this._write(new NullStatsdRecord(
+        'c',
+        name,
+        null,
+        (-1 * Math.abs(delta || 1))
+    ));
+    process.nextTick(cb);
+};
+
+proto.immediateCounter = function (name, value, cb) {
+    this._write(new NullStatsdRecord(
+        'c',
+        name,
+        null,
+        value
+    ));
+    process.nextTick(cb);
+};
+
+proto.immediateTiming = function (name, time, cb) {
+    this._write(new NullStatsdRecord(
+        'ms',
+        name,
+        null,
+        null,
+        time
+    ));
+    process.nextTick(cb);
+};
+
