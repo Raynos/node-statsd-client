@@ -118,3 +118,7 @@ proto.immediateTiming = function (name, time, cb) {
     process.nextTick(cb);
 };
 
+proto.getChildClient = function() {
+    return new NullStatsd(this._buffer.capacity());
+};
+
